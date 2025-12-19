@@ -45,7 +45,7 @@ export const PaymentScreen: React.FC = () => {
       })
 
       // TODO: Implement actual payment logic
-      // This would integrate with the BlikPay smart contract
+      // This would integrate with the BlinkPay smart contract
 
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 2000))

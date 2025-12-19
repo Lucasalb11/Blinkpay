@@ -1,5 +1,5 @@
 /**
- * Basic analytics system for BlikPay
+ * Basic analytics system for BlinkPay
  */
 
 // Initialize analytics

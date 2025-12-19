@@ -2,7 +2,7 @@ use anchor_lang::prelude::*;
 use anchor_spl::associated_token::AssociatedToken;
 use anchor_spl::token::Token;
 
-use crate::errors::BlikPayError;
+use crate::errors::BlinkPayError;
 use crate::state::{ScheduledCharge, ScheduledChargeStatus, ScheduledChargeType};
 use crate::utils::*;
 
@@ -48,9 +48,9 @@ pub struct ExecuteScheduledCharge<'info> {
     /// The scheduled charge account
     #[account(
         mut,
-        constraint = scheduled_charge.status == ScheduledChargeStatus::Pending @ BlikPayError::ScheduledChargeNotPending,
-        constraint = scheduled_charge.status != ScheduledChargeStatus::Executed @ BlikPayError::ScheduledChargeAlreadyExecuted,
-        constraint = scheduled_charge.status != ScheduledChargeStatus::Cancelled @ BlikPayError::ScheduledChargeCancelled,
+        constraint = scheduled_charge.status == ScheduledChargeStatus::Pending @ BlinkPayError::ScheduledChargeNotPending,
+        constraint = scheduled_charge.status != ScheduledChargeStatus::Executed @ BlinkPayError::ScheduledChargeAlreadyExecuted,
+        constraint = scheduled_charge.status != ScheduledChargeStatus::Cancelled @ BlinkPayError::ScheduledChargeCancelled,
     )]
     pub scheduled_charge: Account<'info, ScheduledCharge>,
 
@@ -102,14 +102,14 @@ pub struct CancelScheduledCharge<'info> {
     /// The authority cancelling the charge (must be the creator)
     #[account(
         mut,
-        constraint = authority.key() == scheduled_charge.authority @ BlikPayError::InvalidAuthority
+        constraint = authority.key() == scheduled_charge.authority @ BlinkPayError::InvalidAuthority
     )]
     pub authority: Signer<'info>,
 
     /// The scheduled charge account
     #[account(
         mut,
-        constraint = scheduled_charge.status == ScheduledChargeStatus::Pending @ BlikPayError::ScheduledChargeNotPending,
+        constraint = scheduled_charge.status == ScheduledChargeStatus::Pending @ BlinkPayError::ScheduledChargeNotPending,
         close = authority
     )]
     pub scheduled_charge: Account<'info, ScheduledCharge>,
@@ -133,7 +133,7 @@ pub fn create_scheduled_charge(
     let charge_type = match charge_type_u8 {
         0 => ScheduledChargeType::OneTime,
         1 => ScheduledChargeType::Recurring,
-        _ => return err!(BlikPayError::InvalidTimestamp),
+        _ => return err!(BlinkPayError::InvalidTimestamp),
     };
 
     // SECURITY: Comprehensive input validation
@@ -180,18 +180,18 @@ pub fn execute_scheduled_charge(ctx: Context<ExecuteScheduledCharge>) -> Result<
 
     // SECURITY: Restore time validation with buffer for clock skew
     if current_time < scheduled_charge.execute_at.saturating_sub(300) { // 5 minute buffer
-        return err!(BlikPayError::ExecutionTimeNotReached);
+        return err!(BlinkPayError::ExecutionTimeNotReached);
     }
 
     // Check if already executed or cancelled
     if scheduled_charge.status != ScheduledChargeStatus::Pending {
-        return err!(BlikPayError::ScheduledChargeNotPending);
+        return err!(BlinkPayError::ScheduledChargeNotPending);
     }
 
     // Check max executions for recurring charges
     if let Some(max_exec) = scheduled_charge.max_executions {
         if scheduled_charge.execution_count >= max_exec {
-            return err!(BlikPayError::MaxExecutionsExceeded);
+            return err!(BlinkPayError::MaxExecutionsExceeded);
         }
     }
 
@@ -201,7 +201,7 @@ pub fn execute_scheduled_charge(ctx: Context<ExecuteScheduledCharge>) -> Result<
     // This prevents reentrancy attacks
     scheduled_charge.last_executed_at = Some(current_time);
     scheduled_charge.execution_count = scheduled_charge.execution_count.checked_add(1)
-        .ok_or(BlikPayError::Overflow)?;
+        .ok_or(BlinkPayError::Overflow)?;
 
     // Handle recurring charges - calculate next execution time
     match scheduled_charge.charge_type {
@@ -212,7 +212,7 @@ pub fn execute_scheduled_charge(ctx: Context<ExecuteScheduledCharge>) -> Result<
             // Calculate next execution time
             if let Some(interval) = scheduled_charge.interval_seconds {
                 scheduled_charge.execute_at = current_time.checked_add(interval as i64)
-                    .ok_or(BlikPayError::Overflow)?;
+                    .ok_or(BlinkPayError::Overflow)?;
 
                 // Check if we've reached max executions after increment
                 if let Some(max_exec) = scheduled_charge.max_executions {
@@ -231,20 +231,20 @@ pub fn execute_scheduled_charge(ctx: Context<ExecuteScheduledCharge>) -> Result<
     if is_sol_token(&scheduled_charge.token_mint) {
         // SOL payment
         let authority = ctx.accounts.authority.as_ref()
-            .ok_or(BlikPayError::InvalidAuthority)?;
+            .ok_or(BlinkPayError::InvalidAuthority)?;
         let recipient = ctx.accounts.recipient.as_ref()
-            .ok_or(BlikPayError::InvalidRecipient)?;
+            .ok_or(BlinkPayError::InvalidRecipient)?;
 
         transfer_sol(authority, recipient, amount, &ctx.accounts.system_program.to_account_info())?;
         msg!("SOL scheduled charge executed: {} lamports to {}", amount, scheduled_charge.recipient);
     } else {
         // SPL token payment
         let authority_token_account = ctx.accounts.authority_token_account.as_ref()
-            .ok_or(BlikPayError::InvalidTokenAccountOwner)?;
+            .ok_or(BlinkPayError::InvalidTokenAccountOwner)?;
         let recipient_token_account = ctx.accounts.recipient_token_account.as_ref()
-            .ok_or(BlikPayError::InvalidAssociatedTokenAccount)?;
+            .ok_or(BlinkPayError::InvalidAssociatedTokenAccount)?;
         let token_program = ctx.accounts.token_program.as_ref()
-            .ok_or(BlikPayError::InvalidTokenMint)?;
+            .ok_or(BlinkPayError::InvalidTokenMint)?;
 
         // Validate token account ownership
         validate_token_account_ownership(authority_token_account, &scheduled_charge.authority)?;

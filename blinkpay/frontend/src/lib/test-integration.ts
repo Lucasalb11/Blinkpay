@@ -1,10 +1,10 @@
 import { Connection, Keypair, PublicKey } from '@solana/web3.js'
-import { BlikPayClient } from './blinkpay'
+import { BlinkPayClient } from './blinkpay'
 import { PROGRAM_ID, SOL_MINT } from './config'
 
 // Test script to verify integration with deployed program
 export async function testIntegration() {
-  console.log('🚀 Testing BlikPay Integration with Devnet')
+  console.log('🚀 Testing BlinkPay Integration with Devnet')
 
   // Connect to devnet
   const connection = new Connection('https://api.devnet.solana.com', 'confirmed')
@@ -19,7 +19,7 @@ export async function testIntegration() {
   console.log('✅ Airdrop received')
 
   // Create client
-  const client = new BlikPayClient(connection, {
+  const client = new BlinkPayClient(connection, {
     publicKey: testWallet.publicKey,
     signTransaction: async (tx: any) => {
       tx.sign(testWallet)

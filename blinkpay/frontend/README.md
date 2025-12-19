@@ -1,6 +1,6 @@
-# BlikPay Frontend
+# BlinkPay Frontend
 
-A modern, responsive frontend for the BlikPay Solana payment platform built with Next.js, TypeScript, and Tailwind CSS.
+A modern, responsive frontend for the BlinkPay Solana payment platform built with Next.js, TypeScript, and Tailwind CSS.
 
 ## 🚀 Features
 

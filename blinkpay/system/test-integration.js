@@ -3,7 +3,7 @@ const { PublicKey, Connection, Keypair } = require('@solana/web3.js')
 
 // Test script to verify integration with deployed program
 async function testIntegration() {
-  console.log('🚀 Testing BlikPay Integration with Devnet')
+  console.log('🚀 Testing BlinkPay Integration with Devnet')
 
   // Program ID from deployment
   const PROGRAM_ID = new PublicKey('9zMTynBadkbNVsjujpxkgzXGCezDkvrqZxMtj98T961o')

@@ -2,7 +2,7 @@ use anchor_lang::prelude::*;
 use anchor_spl::token::{self, TokenAccount};
 use anchor_lang::system_program::{transfer, Transfer};
 
-use crate::errors::BlikPayError;
+use crate::errors::BlinkPayError;
 
 /// Transfer SOL from one account to another
 /// Uses the system program's transfer instruction
@@ -60,7 +60,7 @@ pub fn validate_token_account_ownership<'info>(
     let token_account_data = TokenAccount::try_deserialize(&mut &token_account.data.borrow()[..])?;
 
     if token_account_data.owner != *expected_owner {
-        return err!(BlikPayError::InvalidTokenAccountOwner);
+        return err!(BlinkPayError::InvalidTokenAccountOwner);
     }
 
     Ok(())
@@ -85,19 +85,19 @@ pub fn validate_token_mint(mint: &Pubkey) -> Result<()> {
 
 /// Safe addition with overflow check
 pub fn safe_add(a: u64, b: u64) -> Result<u64> {
-    a.checked_add(b).ok_or(BlikPayError::Overflow.into())
+    a.checked_add(b).ok_or(BlinkPayError::Overflow.into())
 }
 
 /// Safe subtraction with underflow check
 pub fn safe_sub(a: u64, b: u64) -> Result<u64> {
-    a.checked_sub(b).ok_or(BlikPayError::InsufficientFunds.into())
+    a.checked_sub(b).ok_or(BlinkPayError::InsufficientFunds.into())
 }
 
 /// Validate memo length
 pub fn validate_memo(memo: &str) -> Result<()> {
     const MAX_MEMO_LENGTH: usize = 200;
     if memo.len() > MAX_MEMO_LENGTH {
-        return err!(BlikPayError::MemoTooLong);
+        return err!(BlinkPayError::MemoTooLong);
     }
     Ok(())
 }
@@ -113,12 +113,12 @@ pub const TIME_BUFFER_SECONDS: i64 = 300; // 5 minutes buffer for time validatio
 /// Enhanced amount validation with security bounds
 pub fn validate_amount(amount: u64) -> Result<()> {
     if amount < MIN_AMOUNT_SOL {
-        return err!(BlikPayError::InvalidAmount);
+        return err!(BlinkPayError::InvalidAmount);
     }
 
     // Prevent overflow attacks (though checked_add protects against this)
     if amount > u64::MAX / 2 {
-        return err!(BlikPayError::InvalidAmount);
+        return err!(BlinkPayError::InvalidAmount);
     }
 
     Ok(())
@@ -127,11 +127,11 @@ pub fn validate_amount(amount: u64) -> Result<()> {
 /// Enhanced interval validation
 pub fn validate_interval(interval_seconds: u64) -> Result<()> {
     if interval_seconds < MIN_INTERVAL_SECONDS {
-        return err!(BlikPayError::InvalidInterval);
+        return err!(BlinkPayError::InvalidInterval);
     }
 
     if interval_seconds > MAX_INTERVAL_SECONDS {
-        return err!(BlikPayError::InvalidInterval);
+        return err!(BlinkPayError::InvalidInterval);
     }
 
     Ok(())
@@ -141,13 +141,13 @@ pub fn validate_interval(interval_seconds: u64) -> Result<()> {
 pub fn validate_future_timestamp(timestamp: i64, current_time: i64) -> Result<()> {
     // Allow some buffer for clock skew (5 minutes)
     if timestamp < current_time.saturating_sub(TIME_BUFFER_SECONDS) {
-        return err!(BlikPayError::InvalidTimestamp);
+        return err!(BlinkPayError::InvalidTimestamp);
     }
 
     // Prevent timestamps too far in the future (1 year)
     let max_future = current_time.saturating_add(MAX_INTERVAL_SECONDS as i64);
     if timestamp > max_future {
-        return err!(BlikPayError::InvalidTimestamp);
+        return err!(BlinkPayError::InvalidTimestamp);
     }
 
     Ok(())
@@ -170,7 +170,7 @@ pub fn validate_scheduled_charge_params(
     // Max executions validation
     if let Some(max_exec) = max_executions {
         if max_exec == 0 || max_exec > MAX_EXECUTIONS {
-            return err!(BlikPayError::InvalidTimestamp); // Using existing error
+            return err!(BlinkPayError::InvalidTimestamp); // Using existing error
         }
     }
 
@@ -185,7 +185,7 @@ pub fn validate_scheduled_charge_params(
 /// Validate recipient is not the same as authority (prevent self-transfers)
 pub fn validate_recipient_not_authority(recipient: &Pubkey, authority: &Pubkey) -> Result<()> {
     if recipient == authority {
-        return err!(BlikPayError::InvalidRecipient);
+        return err!(BlinkPayError::InvalidRecipient);
     }
     Ok(())
 }

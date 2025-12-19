@@ -7,7 +7,7 @@ import { useWallet } from '@solana/wallet-adapter-react'
 import toast from 'react-hot-toast'
 import { Button } from '@/components/ui/Button'
 import { SOL_MINT, PYUSD_MINT, UI_CONSTANTS } from '@/lib/config'
-import { useBlikPay } from '@/lib/blinkpay'
+import { useBlinkPay } from '@/lib/blinkpay'
 
 interface RequestModalProps {
   isOpen: boolean
@@ -16,7 +16,7 @@ interface RequestModalProps {
 
 export const RequestModal: FC<RequestModalProps> = ({ isOpen, onClose }) => {
   const { publicKey } = useWallet()
-  const { getClient } = useBlikPay()
+  const { getClient } = useBlinkPay()
 
   const [amount, setAmount] = useState('')
   const [tokenType, setTokenType] = useState<'SOL' | 'PYUSD'>('SOL')

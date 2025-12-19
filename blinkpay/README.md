@@ -1,10 +1,10 @@
-# BlikPay - Solana University Hackathon Submission
+# BlinkPay - Solana University Hackathon Submission
 
-![BlikPay Logo](https://img.shields.io/badge/Solana-BlikPay-blue) ![Hackathon Ready](https://img.shields.io/badge/Solana--University--Hackathon-Fall--2025-green) ![Anchor](https://img.shields.io/badge/Anchor-0.32.0-orange)
+![BlinkPay Logo](https://img.shields.io/badge/Solana-BlinkPay-blue) ![Hackathon Ready](https://img.shields.io/badge/Solana--University--Hackathon-Fall--2025-green) ![Anchor](https://img.shields.io/badge/Anchor-0.32.0-orange)
 
 **🏆 Solana University Hackathon Fall 2025 - Payment Infrastructure Track**
 
-BlikPay is a production-ready, non-custodial payment and billing platform that demonstrates advanced Solana programming concepts including Program Derived Addresses (PDAs), Cross-Program Invocations (CPIs), and on-chain automation. This project showcases how to build scalable payment infrastructure on Solana while maintaining security and user experience.
+BlinkPay is a production-ready, non-custodial payment and billing platform that demonstrates advanced Solana programming concepts including Program Derived Addresses (PDAs), Cross-Program Invocations (CPIs), and on-chain automation. This project showcases how to build scalable payment infrastructure on Solana while maintaining security and user experience.
 
 ## 🎯 Hackathon Project Overview
 
@@ -16,7 +16,7 @@ BlikPay is a production-ready, non-custodial payment and billing platform that d
 - Production-ready smart contract architecture
 
 **Technical Innovation:**
-BlikPay bridges traditional payment UX with Web3 capabilities, implementing complex on-chain logic for automated payments while maintaining decentralization and security.
+BlinkPay bridges traditional payment UX with Web3 capabilities, implementing complex on-chain logic for automated payments while maintaining decentralization and security.
 
 ### 🚀 Core Features
 
@@ -453,4 +453,4 @@ This project aims to accelerate the learning curve for developers entering the S
 
 ---
 
-**🚀 Ready for Hackathon Submission** - BlikPay demonstrates advanced Solana development skills while building practical payment infrastructure for the Web3 ecosystem.
+**🚀 Ready for Hackathon Submission** - BlinkPay demonstrates advanced Solana development skills while building practical payment infrastructure for the Web3 ecosystem.

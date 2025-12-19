@@ -52,7 +52,7 @@ export interface CreateScheduledChargeParams {
   memo?: string
 }
 
-export class BlikPayClient {
+export class BlinkPayClient {
   private program: Program
   private connection: Connection
 
@@ -426,8 +426,8 @@ export class BlikPayClient {
   }
 }
 
-// React hook for using BlikPay client
-export function useBlikPay() {
+// React hook for using BlinkPay client
+export function useBlinkPay() {
   const wallet = useWallet()
 
   const getClient = () => {
@@ -436,7 +436,7 @@ export function useBlikPay() {
     }
     // Use a simple connection for now
     const connection = new Connection('https://api.devnet.solana.com', 'confirmed')
-    return new BlikPayClient(connection, wallet)
+    return new BlinkPayClient(connection, wallet)
   }
 
   return { getClient }

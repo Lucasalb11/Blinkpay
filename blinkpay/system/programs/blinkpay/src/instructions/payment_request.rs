@@ -2,7 +2,7 @@ use anchor_lang::prelude::*;
 use anchor_spl::associated_token::AssociatedToken;
 use anchor_spl::token::Token;
 
-use crate::errors::BlikPayError;
+use crate::errors::BlinkPayError;
 use crate::state::{PaymentRequest, PaymentRequestStatus};
 use crate::utils::*;
 
@@ -47,9 +47,9 @@ pub struct PayRequest<'info> {
     /// The payment request account
     #[account(
         mut,
-        constraint = payment_request.status == PaymentRequestStatus::Pending @ BlikPayError::PaymentRequestNotPending,
-        constraint = payment_request.status != PaymentRequestStatus::Paid @ BlikPayError::PaymentRequestAlreadyPaid,
-        constraint = payment_request.status != PaymentRequestStatus::Cancelled @ BlikPayError::PaymentRequestCancelled,
+        constraint = payment_request.status == PaymentRequestStatus::Pending @ BlinkPayError::PaymentRequestNotPending,
+        constraint = payment_request.status != PaymentRequestStatus::Paid @ BlinkPayError::PaymentRequestAlreadyPaid,
+        constraint = payment_request.status != PaymentRequestStatus::Cancelled @ BlinkPayError::PaymentRequestCancelled,
     )]
     pub payment_request: Account<'info, PaymentRequest>,
 
@@ -102,7 +102,7 @@ pub fn create_payment_request(
 
     // Additional security checks
     if ctx.accounts.authority.key == &recipient {
-        return err!(BlikPayError::InvalidRecipient);
+        return err!(BlinkPayError::InvalidRecipient);
     }
 
     let payment_request = &mut ctx.accounts.payment_request;
@@ -134,7 +134,7 @@ pub fn pay_request(ctx: Context<PayRequest>) -> Result<()> {
     if is_sol_token(&payment_request.token_mint) {
         // SOL payment
         let recipient = ctx.accounts.recipient.as_ref()
-            .ok_or(BlikPayError::InvalidRecipient)?;
+            .ok_or(BlinkPayError::InvalidRecipient)?;
 
         transfer_sol(
             &ctx.accounts.payer.to_account_info(),
@@ -147,11 +147,11 @@ pub fn pay_request(ctx: Context<PayRequest>) -> Result<()> {
     } else {
         // SPL token payment
         let payer_token_account = ctx.accounts.payer_token_account.as_ref()
-            .ok_or(BlikPayError::InvalidTokenAccountOwner)?;
+            .ok_or(BlinkPayError::InvalidTokenAccountOwner)?;
         let recipient_token_account = ctx.accounts.recipient_token_account.as_ref()
-            .ok_or(BlikPayError::InvalidAssociatedTokenAccount)?;
+            .ok_or(BlinkPayError::InvalidAssociatedTokenAccount)?;
         let token_program = ctx.accounts.token_program.as_ref()
-            .ok_or(BlikPayError::InvalidTokenMint)?;
+            .ok_or(BlinkPayError::InvalidTokenMint)?;
 
         // Validate token account ownership
         validate_token_account_ownership(payer_token_account, &ctx.accounts.payer.key())?;

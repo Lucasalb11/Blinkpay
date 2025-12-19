@@ -9,7 +9,7 @@ import DatePicker from 'react-datepicker'
 import 'react-datepicker/dist/react-datepicker.css'
 import { Button } from '@/components/ui/Button'
 import { SOL_MINT, PYUSD_MINT, UI_CONSTANTS } from '@/lib/config'
-import { useBlikPay } from '@/lib/blinkpay'
+import { useBlinkPay } from '@/lib/blinkpay'
 
 interface ScheduledModalProps {
   isOpen: boolean
@@ -21,7 +21,7 @@ type Frequency = 'daily' | 'weekly' | 'monthly' | 'yearly'
 
 export const ScheduledModal: FC<ScheduledModalProps> = ({ isOpen, onClose }) => {
   const { publicKey } = useWallet()
-  const { getClient } = useBlikPay()
+  const { getClient } = useBlinkPay()
 
   const [recipient, setRecipient] = useState('')
   const [amount, setAmount] = useState('')

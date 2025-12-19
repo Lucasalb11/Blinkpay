@@ -1,8 +1,8 @@
 use anchor_lang::prelude::*;
 
-/// Custom errors for the BlikPay program
+/// Custom errors for the BlinkPay program
 #[error_code]
-pub enum BlikPayError {
+pub enum BlinkPayError {
     /// Payment request is not in pending status
     #[msg("Payment request is not pending")]
     PaymentRequestNotPending,

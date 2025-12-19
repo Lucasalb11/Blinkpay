@@ -7,7 +7,7 @@ import { useWallet } from '@solana/wallet-adapter-react'
 import toast from 'react-hot-toast'
 import { Button } from '@/components/ui/Button'
 import { SOL_MINT, PYUSD_MINT, UI_CONSTANTS } from '@/lib/config'
-import { useBlikPay } from '@/lib/blinkpay'
+import { useBlinkPay } from '@/lib/blinkpay'
 import { sanitizeMemo, validateSolanaAddress, validateAmount, globalRateLimiter, logSecurityEvent } from '@/lib/security'
 
 interface PaymentModalProps {
@@ -17,7 +17,7 @@ interface PaymentModalProps {
 
 export const PaymentModal: FC<PaymentModalProps> = ({ isOpen, onClose }) => {
   const { publicKey } = useWallet()
-  const { getClient } = useBlikPay()
+  const { getClient } = useBlinkPay()
 
   const [recipient, setRecipient] = useState('')
   const [amount, setAmount] = useState('')

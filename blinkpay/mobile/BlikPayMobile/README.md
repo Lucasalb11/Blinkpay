@@ -1,6 +1,6 @@
-# BlikPay Mobile 📱
+# BlinkPay Mobile 📱
 
-A React Native mobile application for BlikPay - Lightning-fast payments on Solana blockchain.
+A React Native mobile application for BlinkPay - Lightning-fast payments on Solana blockchain.
 
 ## 🚀 Features
 
@@ -53,7 +53,7 @@ A React Native mobile application for BlikPay - Lightning-fast payments on Solan
 
 1. **Install dependencies**
    ```bash
-   cd mobile/BlikPayMobile
+   cd mobile/BlinkPayMobile
    npm install
    ```
 
@@ -328,4 +328,4 @@ ISC License - see LICENSE file for details.
 
 ---
 
-**🎉 Ready for Mobile Payments**: BlikPay Mobile brings the power of Solana payments to your pocket with a native, secure, and user-friendly experience! 📱✨
+**🎉 Ready for Mobile Payments**: BlinkPay Mobile brings the power of Solana payments to your pocket with a native, secure, and user-friendly experience! 📱✨

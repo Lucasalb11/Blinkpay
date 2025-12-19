@@ -2,7 +2,7 @@ const anchor = require('@project-serum/anchor')
 const { PublicKey, Connection } = require('@solana/web3.js')
 
 async function testDevnetIntegration() {
-  console.log('🚀 Testing BlikPay Devnet Integration')
+  console.log('🚀 Testing BlinkPay Devnet Integration')
 
   // Program ID from deployment
   const PROGRAM_ID = new PublicKey('9zMTynBadkbNVsjujpxkgzXGCezDkvrqZxMtj98T961o')

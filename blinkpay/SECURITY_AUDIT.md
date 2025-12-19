@@ -1,4 +1,4 @@
-# 🔒 BlikPay Security Audit Report
+# 🔒 BlinkPay Security Audit Report
 
 **Audit Date**: December 19, 2025
 **Auditor**: Senior Solana Engineer (7+ years experience)
@@ -7,7 +7,7 @@
 
 ## 📋 Executive Summary
 
-This security audit covers the BlikPay smart contract and frontend implementation. The audit identified several areas of concern that require immediate attention, along with recommendations for hardening the security posture.
+This security audit covers the BlinkPay smart contract and frontend implementation. The audit identified several areas of concern that require immediate attention, along with recommendations for hardening the security posture.
 
 **Overall Security Rating: 🟡 MEDIUM RISK**
 
@@ -33,7 +33,7 @@ This security audit covers the BlikPay smart contract and frontend implementatio
 scheduled_charge.status = ScheduledChargeStatus::Executed;
 scheduled_charge.last_executed_at = Some(current_time);
 scheduled_charge.execution_count = scheduled_charge.execution_count.checked_add(1)
-    .ok_or(BlikPayError::Overflow)?;
+    .ok_or(BlinkPayError::Overflow)?;
 ```
 
 **Impact**: Attacker could potentially re-enter and execute multiple times.
@@ -44,7 +44,7 @@ scheduled_charge.execution_count = scheduled_charge.execution_count.checked_add(
 scheduled_charge.status = ScheduledChargeStatus::Executed;
 scheduled_charge.last_executed_at = Some(current_time);
 scheduled_charge.execution_count = scheduled_charge.execution_count.checked_add(1)
-    .ok_or(BlikPayError::Overflow)?;
+    .ok_or(BlinkPayError::Overflow)?;
 
 // Then perform transfer
 if is_sol_token(&scheduled_charge.token_mint) {
@@ -64,7 +64,7 @@ if is_sol_token(&scheduled_charge.token_mint) {
 ```rust
 // COMMENTED OUT - HIGH RISK
 // if current_time < scheduled_charge.execute_at.saturating_sub(60) {
-//     return err!(BlikPayError::ExecutionTimeNotReached);
+//     return err!(BlinkPayError::ExecutionTimeNotReached);
 // }
 ```
 
@@ -215,13 +215,13 @@ pub fn validate_scheduled_charge_params(
 ) -> Result<()> {
     // Minimum amount check
     if amount < MIN_AMOUNT {
-        return err!(BlikPayError::AmountTooSmall);
+        return err!(BlinkPayError::AmountTooSmall);
     }
 
     // Maximum executions check
     if let Some(max_exec) = max_executions {
         if max_exec > MAX_EXECUTIONS {
-            return err!(BlikPayError::TooManyExecutions);
+            return err!(BlinkPayError::TooManyExecutions);
         }
     }
 
@@ -259,7 +259,7 @@ pub fn validate_authority(
     expected_authority: &Pubkey,
 ) -> Result<()> {
     if signer != expected_authority {
-        return err!(BlikPayError::Unauthorized);
+        return err!(BlinkPayError::Unauthorized);
     }
     Ok(())
 }

@@ -25,19 +25,36 @@ export const WalletProvider: FC<WalletProviderProps> = ({ children }) => {
   const network = WalletAdapterNetwork.Devnet
 
   // You can also provide a custom RPC endpoint.
-  const endpoint = useMemo(() => clusterApiUrl(network), [network])
+  const endpoint = useMemo(() => {
+    // Use a more reliable RPC endpoint for devnet
+    return network === WalletAdapterNetwork.Devnet
+      ? 'https://api.devnet.solana.com'
+      : clusterApiUrl(network)
+  }, [network])
 
   const wallets = useMemo(
     () => [
-      new PhantomWalletAdapter(),
-      new SolflareWalletAdapter(),
+      new PhantomWalletAdapter({
+        // Explicitly configure for devnet
+        network,
+      }),
+      new SolflareWalletAdapter({
+        // Explicitly configure for devnet
+        network,
+      }),
     ],
-    []
+    [network]
   )
 
   return (
     <ConnectionProvider endpoint={endpoint}>
-      <SolanaWalletProvider wallets={wallets} autoConnect>
+      <SolanaWalletProvider
+        wallets={wallets}
+        autoConnect={false} // Disable auto-connect to avoid issues
+        onError={(error) => {
+          console.error('Wallet error:', error)
+        }}
+      >
         <WalletModalProvider>{children}</WalletModalProvider>
       </SolanaWalletProvider>
     </ConnectionProvider>

@@ -41,7 +41,7 @@ const App: React.FC = () => {
               <Stack.Screen
                 name="Home"
                 component={HomeScreen}
-                options={{ title: 'BlikPay Mobile' }}
+                options={{ title: 'BlinkPay Mobile' }}
               />
               <Stack.Screen
                 name="Payment"

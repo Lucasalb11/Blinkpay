@@ -29,7 +29,7 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
     () => [
       new SolanaMobileWalletAdapter({
         appIdentity: {
-          name: 'BlikPay Mobile',
+          name: 'BlinkPay Mobile',
           uri: 'https://blikpay.com',
           icon: 'favicon.ico',
         },
