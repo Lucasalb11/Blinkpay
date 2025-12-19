@@ -94,13 +94,14 @@ pub fn create_payment_request(
     memo: String,
     current_time: i64,
 ) -> Result<()> {
-    // Validate inputs
+    // SECURITY: Comprehensive input validation
     validate_amount(amount)?;
     validate_token_mint(&token_mint)?;
     validate_memo(&memo)?;
+    validate_recipient_not_authority(&recipient, &ctx.accounts.authority.key)?;
 
-    // Ensure recipient is not the same as authority (prevents self-requests)
-    if recipient == *ctx.accounts.authority.key {
+    // Additional security checks
+    if ctx.accounts.authority.key == &recipient {
         return err!(BlikPayError::InvalidRecipient);
     }
 

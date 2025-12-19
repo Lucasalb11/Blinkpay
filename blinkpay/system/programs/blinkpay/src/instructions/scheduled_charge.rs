@@ -129,30 +129,24 @@ pub fn create_scheduled_charge(
     memo: String,
     current_time: i64,
 ) -> Result<()> {
-    // Convert u8 to ScheduledChargeType
+    // SECURITY: Convert u8 to ScheduledChargeType with bounds checking
     let charge_type = match charge_type_u8 {
         0 => ScheduledChargeType::OneTime,
         1 => ScheduledChargeType::Recurring,
-        _ => return err!(BlikPayError::InvalidTimestamp), // Using InvalidTimestamp as generic error
+        _ => return err!(BlikPayError::InvalidTimestamp),
     };
-    // Validate inputs
-    validate_amount(amount)?;
+
+    // SECURITY: Comprehensive input validation
+    validate_scheduled_charge_params(
+        amount,
+        execute_at,
+        max_executions,
+        interval_seconds,
+        current_time,
+    )?;
     validate_token_mint(&token_mint)?;
     validate_memo(&memo)?;
-
-    // Skip validation for testing - allow any reasonable timestamp
-    // validate_future_timestamp(execute_at, current_time)?;
-
-    // Validate interval for recurring charges
-    if let ScheduledChargeType::Recurring = charge_type {
-        let interval = interval_seconds.ok_or(BlikPayError::InvalidInterval)?;
-        validate_interval(interval)?;
-    }
-
-    // Ensure recipient is not the same as authority (prevents self-charges)
-    if recipient == *ctx.accounts.authority.key {
-        return err!(BlikPayError::InvalidRecipient);
-    }
+    validate_recipient_not_authority(&recipient, &ctx.accounts.authority.key)?;
 
     let scheduled_charge = &mut ctx.accounts.scheduled_charge;
 
@@ -184,10 +178,15 @@ pub fn execute_scheduled_charge(ctx: Context<ExecuteScheduledCharge>) -> Result<
     let clock = Clock::get()?;
     let current_time = clock.unix_timestamp;
 
-    // Skip time check for testing
-    // if current_time < scheduled_charge.execute_at.saturating_sub(60) {
-    //     return err!(BlikPayError::ExecutionTimeNotReached);
-    // }
+    // SECURITY: Restore time validation with buffer for clock skew
+    if current_time < scheduled_charge.execute_at.saturating_sub(300) { // 5 minute buffer
+        return err!(BlikPayError::ExecutionTimeNotReached);
+    }
+
+    // Check if already executed or cancelled
+    if scheduled_charge.status != ScheduledChargeStatus::Pending {
+        return err!(BlikPayError::ScheduledChargeNotPending);
+    }
 
     // Check max executions for recurring charges
     if let Some(max_exec) = scheduled_charge.max_executions {
@@ -198,7 +197,37 @@ pub fn execute_scheduled_charge(ctx: Context<ExecuteScheduledCharge>) -> Result<
 
     let amount = scheduled_charge.amount;
 
-    // Execute the payment
+    // SECURITY: Update state BEFORE transfer (Checks-Effects-Interactions pattern)
+    // This prevents reentrancy attacks
+    scheduled_charge.last_executed_at = Some(current_time);
+    scheduled_charge.execution_count = scheduled_charge.execution_count.checked_add(1)
+        .ok_or(BlikPayError::Overflow)?;
+
+    // Handle recurring charges - calculate next execution time
+    match scheduled_charge.charge_type {
+        ScheduledChargeType::OneTime => {
+            scheduled_charge.status = ScheduledChargeStatus::Executed;
+        }
+        ScheduledChargeType::Recurring => {
+            // Calculate next execution time
+            if let Some(interval) = scheduled_charge.interval_seconds {
+                scheduled_charge.execute_at = current_time.checked_add(interval as i64)
+                    .ok_or(BlikPayError::Overflow)?;
+
+                // Check if we've reached max executions after increment
+                if let Some(max_exec) = scheduled_charge.max_executions {
+                    if scheduled_charge.execution_count >= max_exec {
+                        scheduled_charge.status = ScheduledChargeStatus::Executed;
+                    }
+                }
+            } else {
+                // Recurring charge without interval should not exist, but handle gracefully
+                scheduled_charge.status = ScheduledChargeStatus::Executed;
+            }
+        }
+    }
+
+    // SECURITY: Perform transfer AFTER state updates (Checks-Effects-Interactions)
     if is_sol_token(&scheduled_charge.token_mint) {
         // SOL payment
         let authority = ctx.accounts.authority.as_ref()
@@ -229,32 +258,6 @@ pub fn execute_scheduled_charge(ctx: Context<ExecuteScheduledCharge>) -> Result<
             amount,
         )?;
         msg!("SPL token scheduled charge executed: {} tokens to {}", amount, scheduled_charge.recipient);
-    }
-
-    // Update charge state
-    scheduled_charge.last_executed_at = Some(current_time);
-    scheduled_charge.execution_count = scheduled_charge.execution_count.checked_add(1)
-        .ok_or(BlikPayError::Overflow)?;
-
-    // Handle recurring charges
-    match scheduled_charge.charge_type {
-        ScheduledChargeType::OneTime => {
-            scheduled_charge.status = ScheduledChargeStatus::Executed;
-        }
-        ScheduledChargeType::Recurring => {
-            // Calculate next execution time
-            if let Some(interval) = scheduled_charge.interval_seconds {
-                scheduled_charge.execute_at = current_time.checked_add(interval as i64)
-                    .ok_or(BlikPayError::Overflow)?;
-
-                // Check if we've reached max executions
-                if let Some(max_exec) = scheduled_charge.max_executions {
-                    if scheduled_charge.execution_count >= max_exec {
-                        scheduled_charge.status = ScheduledChargeStatus::Executed;
-                    }
-                }
-            }
-        }
     }
 
     Ok(())

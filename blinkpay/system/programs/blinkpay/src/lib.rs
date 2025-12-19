@@ -6,9 +6,8 @@ pub mod errors;
 pub mod utils;
 
 use instructions::*;
-use state::ScheduledChargeType;
 
-declare_id!("GCdgRD3ss44Qyr9QpS3nj1u6UwbXnua8jU1EXazwyyPV");
+declare_id!("9zMTynBadkbNVsjujpxkgzXGCezDkvrqZxMtj98T961o");
 
 #[program]
 pub mod blinkpay {

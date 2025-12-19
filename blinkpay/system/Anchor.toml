@@ -8,6 +8,9 @@ skip-lint = false
 [programs.localnet]
 blinkpay = "GCdgRD3ss44Qyr9QpS3nj1u6UwbXnua8jU1EXazwyyPV"
 
+[programs.devnet]
+blinkpay = "9zMTynBadkbNVsjujpxkgzXGCezDkvrqZxMtj98T961o"
+
 [registry]
 url = "https://api.apr.dev"
 
