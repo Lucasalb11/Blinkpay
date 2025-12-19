@@ -1,7 +1,6 @@
 'use client'
 
 import { FC, useState } from 'react'
-import { Dialog } from '@headlessui/react'
 import { X, Calendar, Clock, Loader2, Repeat } from 'lucide-react'
 import { PublicKey } from '@solana/web3.js'
 import { useWallet } from '@solana/wallet-adapter-react'
@@ -153,23 +152,22 @@ export const ScheduledModal: FC<ScheduledModalProps> = ({ isOpen, onClose }) => 
     }
   }
 
-  return (
-    <Dialog open={isOpen} onClose={onClose} className="relative z-50">
-      <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
+  if (!isOpen) return null
 
-      <div className="fixed inset-0 flex items-center justify-center p-4">
-        <Dialog.Panel className="mx-auto max-w-lg w-full bg-white dark:bg-gray-800 rounded-2xl shadow-xl max-h-[90vh] overflow-y-auto">
-          <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-            <Dialog.Title className="text-lg font-semibold text-gray-900 dark:text-white">
-              Schedule Payment
-            </Dialog.Title>
-            <button
-              onClick={onClose}
-              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+      <div className="relative max-w-lg w-full mx-4 bg-white dark:bg-gray-800 rounded-2xl shadow-xl max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+            Schedule Payment
+          </h2>
+          <button
+            onClick={onClose}
+            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
 
           <form onSubmit={handleSubmit} className="p-6 space-y-6">
             {/* Recipient */}
@@ -355,9 +353,8 @@ export const ScheduledModal: FC<ScheduledModalProps> = ({ isOpen, onClose }) => 
                 )}
               </Button>
             </div>
-          </form>
-        </div>
+        </form>
       </div>
-    </Dialog>
+    </div>
   )
 }

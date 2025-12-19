@@ -1,5 +1,6 @@
 use anchor_lang::prelude::*;
 use anchor_spl::token::{self, TokenAccount};
+use anchor_lang::system_program::{transfer, Transfer};
 
 use crate::errors::BlikPayError;
 
@@ -12,13 +13,13 @@ pub fn transfer_sol<'info>(
     system_program: &AccountInfo<'info>,
 ) -> Result<()> {
     // Create the accounts context
-    let accounts = system_program::Transfer {
+    let accounts = Transfer {
         from: from.clone(),
         to: to.clone(),
     };
 
     // Execute the transfer
-    system_program::transfer(
+    transfer(
         CpiContext::new(system_program.clone(), accounts),
         amount,
     )?;
@@ -92,32 +93,6 @@ pub fn safe_sub(a: u64, b: u64) -> Result<u64> {
     a.checked_sub(b).ok_or(BlikPayError::InsufficientFunds.into())
 }
 
-/// Validate amount is greater than zero
-pub fn validate_amount(amount: u64) -> Result<()> {
-    if amount == 0 {
-        return err!(BlikPayError::InvalidAmount);
-    }
-    Ok(())
-}
-
-/// Validate timestamp is not in the past (with small buffer for clock skew)
-pub fn validate_future_timestamp(timestamp: i64, current_time: i64) -> Result<()> {
-    // Allow 5 second buffer for clock skew
-    if timestamp < current_time.saturating_sub(5) {
-        return err!(BlikPayError::InvalidTimestamp);
-    }
-    Ok(())
-}
-
-/// Validate interval for recurring charges (minimum 1 hour)
-pub fn validate_interval(interval_seconds: u64) -> Result<()> {
-    const MIN_INTERVAL: u64 = 3600; // 1 hour
-    if interval_seconds < MIN_INTERVAL {
-        return err!(BlikPayError::InvalidInterval);
-    }
-    Ok(())
-}
-
 /// Validate memo length
 pub fn validate_memo(memo: &str) -> Result<()> {
     const MAX_MEMO_LENGTH: usize = 200;
@@ -134,35 +109,6 @@ pub const MAX_EXECUTIONS: u32 = 1000; // Maximum executions for recurring charge
 pub const MIN_INTERVAL_SECONDS: u64 = 3600; // 1 hour minimum interval
 pub const MAX_INTERVAL_SECONDS: u64 = 31536000; // 1 year maximum interval
 pub const TIME_BUFFER_SECONDS: i64 = 300; // 5 minutes buffer for time validation
-
-/// Comprehensive input validation for scheduled charges
-pub fn validate_scheduled_charge_params(
-    amount: u64,
-    execute_at: i64,
-    max_executions: Option<u32>,
-    interval_seconds: Option<u64>,
-    current_time: i64,
-) -> Result<()> {
-    // Amount validation
-    validate_amount(amount)?;
-
-    // Time validation
-    validate_future_timestamp(execute_at, current_time)?;
-
-    // Max executions validation
-    if let Some(max_exec) = max_executions {
-        if max_exec == 0 || max_exec > MAX_EXECUTIONS {
-            return err!(BlikPayError::InvalidTimestamp); // Using existing error
-        }
-    }
-
-    // Interval validation for recurring charges
-    if let Some(interval) = interval_seconds {
-        validate_interval(interval)?;
-    }
-
-    Ok(())
-}
 
 /// Enhanced amount validation with security bounds
 pub fn validate_amount(amount: u64) -> Result<()> {
@@ -202,6 +148,35 @@ pub fn validate_future_timestamp(timestamp: i64, current_time: i64) -> Result<()
     let max_future = current_time.saturating_add(MAX_INTERVAL_SECONDS as i64);
     if timestamp > max_future {
         return err!(BlikPayError::InvalidTimestamp);
+    }
+
+    Ok(())
+}
+
+/// Comprehensive input validation for scheduled charges
+pub fn validate_scheduled_charge_params(
+    amount: u64,
+    execute_at: i64,
+    max_executions: Option<u32>,
+    interval_seconds: Option<u64>,
+    current_time: i64,
+) -> Result<()> {
+    // Amount validation
+    validate_amount(amount)?;
+
+    // Time validation
+    validate_future_timestamp(execute_at, current_time)?;
+
+    // Max executions validation
+    if let Some(max_exec) = max_executions {
+        if max_exec == 0 || max_exec > MAX_EXECUTIONS {
+            return err!(BlikPayError::InvalidTimestamp); // Using existing error
+        }
+    }
+
+    // Interval validation for recurring charges
+    if let Some(interval) = interval_seconds {
+        validate_interval(interval)?;
     }
 
     Ok(())

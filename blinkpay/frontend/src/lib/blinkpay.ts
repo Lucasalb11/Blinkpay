@@ -1,4 +1,4 @@
-import { Program, AnchorProvider, Idl, web3 } from '@project-serum/anchor'
+import { Program, AnchorProvider, BN } from '@project-serum/anchor'
 import { PublicKey, SystemProgram, SYSVAR_CLOCK_PUBKEY, Transaction, Connection } from '@solana/web3.js'
 import { TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID, getAssociatedTokenAddress } from '@solana/spl-token'
 import { useWallet } from '@solana/wallet-adapter-react'
@@ -58,7 +58,7 @@ export class BlikPayClient {
 
   constructor(connection: Connection, wallet: any) {
     const provider = new AnchorProvider(connection, wallet, {})
-    this.program = new Program(idl as Idl, PROGRAM_ID, provider)
+    this.program = new Program(idl as any, PROGRAM_ID, provider)
     this.connection = connection
   }
 
@@ -74,8 +74,8 @@ export class BlikPayClient {
         PDA_SEEDS.PAYMENT_REQUEST,
         authority.toBuffer(),
         recipient.toBuffer(),
-        new web3.BN(amount).toArrayLike(Buffer, 'le', 8),
-        new web3.BN(createdAt).toArrayLike(Buffer, 'le', 8),
+        new BN(amount).toArrayLike(Buffer, 'le', 8),
+        new BN(createdAt).toArrayLike(Buffer, 'le', 8),
       ],
       PROGRAM_ID
     )
@@ -94,8 +94,8 @@ export class BlikPayClient {
         PDA_SEEDS.SCHEDULED_CHARGE,
         authority.toBuffer(),
         recipient.toBuffer(),
-        new web3.BN(amount).toArrayLike(Buffer, 'le', 8),
-        new web3.BN(executeAt).toArrayLike(Buffer, 'le', 8),
+        new BN(amount).toArrayLike(Buffer, 'le', 8),
+        new BN(executeAt).toArrayLike(Buffer, 'le', 8),
         Buffer.from([chargeType]),
       ],
       PROGRAM_ID
@@ -117,11 +117,11 @@ export class BlikPayClient {
 
     const tx = await this.program.methods
       .createPaymentRequest(
-        new web3.BN(amount),
+        new BN(amount),
         tokenMint,
         recipient,
         memo,
-        new web3.BN(createdAt)
+        new BN(createdAt)
       )
       .accounts({
         authority,
@@ -204,15 +204,15 @@ export class BlikPayClient {
 
     const tx = await this.program.methods
       .createScheduledCharge(
-        new web3.BN(amount),
+        new BN(amount),
         tokenMint,
         recipient,
-        new web3.BN(executeAt),
+        new BN(executeAt),
         chargeTypeNum,
-        intervalSeconds ? new web3.BN(intervalSeconds) : null,
-        maxExecutions ? new web3.BN(maxExecutions) : null,
+        intervalSeconds ? new BN(intervalSeconds) : null,
+        maxExecutions ? new BN(maxExecutions) : null,
         memo,
-        new web3.BN(createdAt)
+        new BN(createdAt)
       )
       .accounts({
         authority,
@@ -428,13 +428,14 @@ export class BlikPayClient {
 
 // React hook for using BlikPay client
 export function useBlikPay() {
-  const { connection } = useWallet()
   const wallet = useWallet()
 
   const getClient = () => {
     if (!wallet.publicKey) {
       throw new Error('Wallet not connected')
     }
+    // Use a simple connection for now
+    const connection = new Connection('https://api.devnet.solana.com', 'confirmed')
     return new BlikPayClient(connection, wallet)
   }
 
