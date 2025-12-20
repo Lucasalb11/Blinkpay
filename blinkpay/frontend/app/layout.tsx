@@ -39,8 +39,8 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${inter.className} font-sans antialiased`}>
         <Providers>
-          {children}
-          <Analytics />
+        {children}
+        <Analytics />
         </Providers>
       </body>
     </html>

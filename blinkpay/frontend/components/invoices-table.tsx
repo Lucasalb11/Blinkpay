@@ -4,6 +4,8 @@ import { Copy, ExternalLink } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { buildActionUrl } from "@/lib/actions"
+import { toast } from "sonner"
 
 const invoices = [
   {
@@ -51,8 +53,14 @@ const statusConfig = {
 
 export function InvoicesTable() {
   const handleCopyLink = (id: string) => {
-    // Placeholder for copy functionality
-    console.log(`Copying Blink link for invoice ${id}`)
+    const url = buildActionUrl(id)
+    navigator.clipboard.writeText(url)
+    toast.success("Blink copiado para a área de transferência.")
+  }
+
+  const handleOpenLink = (id: string) => {
+    const url = buildActionUrl(id)
+    window.open(url, "_blank")
   }
 
   return (
@@ -92,7 +100,7 @@ export function InvoicesTable() {
                     <Copy className="w-3.5 h-3.5 mr-1.5" />
                     Copy Link
                   </Button>
-                  <Button variant="ghost" size="icon" className="h-8 w-8">
+                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleOpenLink(invoice.id)}>
                     <ExternalLink className="w-3.5 h-3.5 text-slate-600" />
                   </Button>
                 </div>

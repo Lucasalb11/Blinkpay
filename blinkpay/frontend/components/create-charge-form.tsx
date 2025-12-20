@@ -12,6 +12,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { format } from "date-fns"
 import { CalendarIcon, Check, Twitter, Copy } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { toast } from "sonner"
+import { validateAction } from "@/lib/actions"
 
 const customers = [
   { id: "1", name: "Acme Corp" },
@@ -25,16 +27,36 @@ export function CreateChargeForm() {
   const [date, setDate] = useState<Date>()
   const [isGenerated, setIsGenerated] = useState(false)
   const [blinkUrl, setBlinkUrl] = useState("")
+  const [invoiceId, setInvoiceId] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
 
-  const handleGenerate = () => {
-    // Placeholder for Blink generation logic
-    const generatedUrl = `https://blink.blinkpay.io/pay/${Math.random().toString(36).substr(2, 9)}`
-    setBlinkUrl(generatedUrl)
-    setIsGenerated(true)
+  const handleGenerate = async () => {
+    if (!invoiceId) {
+      toast.error("Invoice ID é obrigatório para gerar o Blink.")
+      return
+    }
+
+    setIsLoading(true)
+    try {
+      const { ok, url } = await validateAction(invoiceId)
+      if (!ok) {
+        toast.error("Invoice não encontrada ou inválida.")
+        return
+      }
+      setBlinkUrl(url)
+      setIsGenerated(true)
+      toast.success("Blink gerado a partir do backend.")
+    } catch (error) {
+      console.error("Erro ao validar invoice", error)
+      toast.error("Falha ao gerar o Blink, tente novamente.")
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const handleCopy = () => {
     navigator.clipboard.writeText(blinkUrl)
+    toast.success("Link copiado para a área de transferência.")
   }
 
   const handleShareTwitter = () => {
@@ -80,6 +102,24 @@ export function CreateChargeForm() {
           <Button onClick={() => setIsGenerated(false)} variant="ghost" className="text-slate-600">
             Create Another Charge
           </Button>
+        </div>
+
+        {/* Invoice ID */}
+        <div className="space-y-2">
+          <Label htmlFor="invoiceId" className="text-slate-700">
+            Invoice ID (UUID)
+          </Label>
+          <Input
+            id="invoiceId"
+            placeholder="Ex: 123e4567-e89b-12d3-a456-426614174000"
+            className="border-slate-200"
+            value={invoiceId}
+            onChange={(e) => setInvoiceId(e.target.value.trim())}
+            required
+          />
+          <p className="text-xs text-slate-500">
+            Usamos este ID para montar o Blink real em `/api/actions/pay/{id}`.
+          </p>
         </div>
       </CardContent>
     )
@@ -164,8 +204,12 @@ export function CreateChargeForm() {
         </div>
 
         {/* Generate Button */}
-        <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 h-12 text-base font-semibold">
-          Generate Blink
+        <Button
+          type="submit"
+          className="w-full bg-blue-600 hover:bg-blue-700 h-12 text-base font-semibold"
+          disabled={isLoading}
+        >
+          {isLoading ? "Validando invoice..." : "Generate Blink"}
         </Button>
       </form>
     </CardContent>
