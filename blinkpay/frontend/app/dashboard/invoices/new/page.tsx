@@ -1,3 +1,5 @@
+"use client"
+
 import { CreateChargeForm } from "@/components/create-charge-form"
 import { Card } from "@/components/ui/card"
 import { ArrowLeft } from "lucide-react"
@@ -28,3 +30,5 @@ export default function NewInvoicePage() {
     </div>
   )
 }
+
+export const dynamic = "force-dynamic"

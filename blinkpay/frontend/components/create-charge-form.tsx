@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
+import { useSearchParams } from "next/navigation"
 import { CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -24,11 +25,19 @@ const customers = [
 ]
 
 export function CreateChargeForm() {
+  const searchParams = useSearchParams()
   const [date, setDate] = useState<Date>()
   const [isGenerated, setIsGenerated] = useState(false)
   const [blinkUrl, setBlinkUrl] = useState("")
   const [invoiceId, setInvoiceId] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+
+  useEffect(() => {
+    const idFromQuery = searchParams.get("id")
+    if (idFromQuery) {
+      setInvoiceId(idFromQuery)
+    }
+  }, [searchParams])
 
   const handleGenerate = async () => {
     if (!invoiceId) {
@@ -104,23 +113,6 @@ export function CreateChargeForm() {
           </Button>
         </div>
 
-        {/* Invoice ID */}
-        <div className="space-y-2">
-          <Label htmlFor="invoiceId" className="text-slate-700">
-            Invoice ID (UUID)
-          </Label>
-          <Input
-            id="invoiceId"
-            placeholder="Ex: 123e4567-e89b-12d3-a456-426614174000"
-            className="border-slate-200"
-            value={invoiceId}
-            onChange={(e) => setInvoiceId(e.target.value.trim())}
-            required
-          />
-          <p className="text-xs text-slate-500">
-            Usamos este ID para montar o Blink real em `/api/actions/pay/{id}`.
-          </p>
-        </div>
       </CardContent>
     )
   }
@@ -151,6 +143,24 @@ export function CreateChargeForm() {
               ))}
             </SelectContent>
           </Select>
+        </div>
+
+        {/* Invoice ID */}
+        <div className="space-y-2">
+          <Label htmlFor="invoiceId" className="text-slate-700">
+            Invoice ID (UUID)
+          </Label>
+          <Input
+            id="invoiceId"
+            placeholder="Ex: 123e4567-e89b-12d3-a456-426614174000"
+            className="border-slate-200"
+            value={invoiceId}
+            onChange={(e) => setInvoiceId(e.target.value.trim())}
+            required
+          />
+          <p className="text-xs text-slate-500">
+            Usamos este ID para montar o Blink real em `/api/actions/pay/{id}`.
+          </p>
         </div>
 
         {/* Amount Input */}
@@ -207,7 +217,7 @@ export function CreateChargeForm() {
         <Button
           type="submit"
           className="w-full bg-blue-600 hover:bg-blue-700 h-12 text-base font-semibold"
-          disabled={isLoading}
+          disabled={isLoading || !invoiceId}
         >
           {isLoading ? "Validando invoice..." : "Generate Blink"}
         </Button>
