@@ -5,11 +5,11 @@ package_manager = "yarn"
 resolution = true
 skip-lint = false
 
-[programs.localnet]
-blinkpay = "GCdgRD3ss44Qyr9QpS3nj1u6UwbXnua8jU1EXazwyyPV"
-
 [programs.devnet]
-blinkpay = "9zMTynBadkbNVsjujpxkgzXGCezDkvrqZxMtj98T961o"
+blinkpay = "J888wm5zYDcxXLyGxYkHBwiWJpQ1J7ZKMKBoGJKCjjM"
+
+[programs.localnet]
+blinkpay = "J888wm5zYDcxXLyGxYkHBwiWJpQ1J7ZKMKBoGJKCjjM"
 
 [registry]
 url = "https://api.apr.dev"

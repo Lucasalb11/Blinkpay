@@ -7,7 +7,7 @@ pub mod utils;
 
 use instructions::*;
 
-declare_id!("9zMTynBadkbNVsjujpxkgzXGCezDkvrqZxMtj98T961o");
+declare_id!("J888wm5zYDcxXLyGxYkHBwiWJpQ1J7ZKMKBoGJKCjjM");
 
 #[program]
 pub mod blinkpay {
@@ -21,9 +21,9 @@ pub mod blinkpay {
         token_mint: Pubkey,
         recipient: Pubkey,
         memo: String,
-        current_time: i64,
+        nonce: i64,
     ) -> Result<()> {
-        instructions::create_payment_request(ctx, amount, token_mint, recipient, memo, current_time)
+        instructions::create_payment_request(ctx, amount, token_mint, recipient, memo, nonce)
     }
 
     /// Pay a payment request
@@ -44,7 +44,7 @@ pub mod blinkpay {
         interval_seconds: Option<u64>,
         max_executions: Option<u32>,
         memo: String,
-        current_time: i64,
+        client_time: i64,
     ) -> Result<()> {
         instructions::create_scheduled_charge(
             ctx,
@@ -56,7 +56,7 @@ pub mod blinkpay {
             interval_seconds,
             max_executions,
             memo,
-            current_time,
+            client_time,
         )
     }
 

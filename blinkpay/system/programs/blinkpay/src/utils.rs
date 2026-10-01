@@ -66,6 +66,19 @@ pub fn validate_token_account_ownership<'info>(
     Ok(())
 }
 
+/// Validate an SPL token account's owner and mint before moving funds through it.
+pub fn validate_token_account<'info>(
+    token_account: &AccountInfo<'info>,
+    expected_owner: &Pubkey,
+    expected_mint: &Pubkey,
+) -> Result<()> {
+    require_keys_eq!(*token_account.owner, anchor_spl::token::ID, BlinkPayError::InvalidTokenAccountOwner);
+    let data = TokenAccount::try_deserialize(&mut &token_account.data.borrow()[..])?;
+    require_keys_eq!(data.owner, *expected_owner, BlinkPayError::InvalidTokenAccountOwner);
+    require_keys_eq!(data.mint, *expected_mint, BlinkPayError::InvalidTokenMint);
+    Ok(())
+}
+
 /// Check if a pubkey is the default pubkey (used to identify SOL payments)
 pub fn is_sol_token(mint: &Pubkey) -> bool {
     *mint == Pubkey::default()

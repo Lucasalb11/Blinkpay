@@ -8,7 +8,7 @@ use crate::utils::*;
 
 /// Accounts required for creating a scheduled charge
 #[derive(Accounts)]
-#[instruction(amount: u64, token_mint: Pubkey, recipient: Pubkey, execute_at: i64, charge_type: u8, interval_seconds: Option<u64>, max_executions: Option<u32>, memo: String, current_time: i64)]
+#[instruction(amount: u64, token_mint: Pubkey, recipient: Pubkey, execute_at: i64, charge_type: u8, interval_seconds: Option<u64>, max_executions: Option<u32>, memo: String, _client_time: i64)]
 pub struct CreateScheduledCharge<'info> {
     /// The authority creating the scheduled charge
     #[account(mut)]
@@ -127,8 +127,11 @@ pub fn create_scheduled_charge(
     interval_seconds: Option<u64>,
     max_executions: Option<u32>,
     memo: String,
-    current_time: i64,
+    // Kept for client compatibility; the program reads time from the Clock sysvar.
+    _client_time: i64,
 ) -> Result<()> {
+    let current_time = Clock::get()?.unix_timestamp;
+
     // SECURITY: Convert u8 to ScheduledChargeType with bounds checking
     let charge_type = match charge_type_u8 {
         0 => ScheduledChargeType::OneTime,
@@ -145,6 +148,8 @@ pub fn create_scheduled_charge(
         current_time,
     )?;
     validate_token_mint(&token_mint)?;
+    // SPL scheduled charges need a delegate approval flow that doesn't exist yet.
+    require!(is_sol_token(&token_mint), BlinkPayError::InvalidTokenMint);
     validate_memo(&memo)?;
     validate_recipient_not_authority(&recipient, &ctx.accounts.authority.key)?;
 

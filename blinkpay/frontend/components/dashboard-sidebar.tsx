@@ -2,13 +2,12 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Home, FileText, Users, Wallet } from "lucide-react"
+import { Home, FileText, Wallet } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: Home },
-  { name: "Invoices", href: "/dashboard/invoices", icon: FileText },
-  { name: "Customers", href: "/dashboard/customers", icon: Users },
+  { name: "Payment links", href: "/dashboard/invoices", icon: FileText },
   { name: "Wallet", href: "/dashboard/wallet", icon: Wallet },
 ]
 

@@ -9,9 +9,8 @@ import { Providers } from "@/components/providers"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "Blinkpay - Solana ERP System",
-  description: "Enterprise payment management powered by Solana",
-  generator: "v0.app",
+  title: "Blinkpay — payment links on Solana",
+  description: "Create a payment link in SOL or USDC, share it, get paid on-chain.",
   icons: {
     icon: [
       {

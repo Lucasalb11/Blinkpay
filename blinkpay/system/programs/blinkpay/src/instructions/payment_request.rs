@@ -8,7 +8,7 @@ use crate::utils::*;
 
 /// Accounts required for creating a payment request
 #[derive(Accounts)]
-#[instruction(amount: u64, token_mint: Pubkey, recipient: Pubkey, memo: String, current_time: i64)]
+#[instruction(amount: u64, token_mint: Pubkey, recipient: Pubkey, memo: String, nonce: i64)]
 pub struct CreatePaymentRequest<'info> {
     /// The authority creating the payment request (payer)
     #[account(mut)]
@@ -24,7 +24,7 @@ pub struct CreatePaymentRequest<'info> {
             authority.key().as_ref(),
             recipient.as_ref(),
             &amount.to_le_bytes(),
-            &current_time.to_le_bytes()
+            &nonce.to_le_bytes()
         ],
         bump
     )]
@@ -92,18 +92,17 @@ pub fn create_payment_request(
     token_mint: Pubkey,
     recipient: Pubkey,
     memo: String,
-    current_time: i64,
+    // Client-chosen value used only to make the PDA unique. Never trusted as time.
+    _nonce: i64,
 ) -> Result<()> {
+    let current_time = Clock::get()?.unix_timestamp;
+
     // SECURITY: Comprehensive input validation
     validate_amount(amount)?;
     validate_token_mint(&token_mint)?;
     validate_memo(&memo)?;
-    validate_recipient_not_authority(&recipient, &ctx.accounts.authority.key)?;
-
-    // Additional security checks
-    if ctx.accounts.authority.key == &recipient {
-        return err!(BlinkPayError::InvalidRecipient);
-    }
+    // A merchant requesting payment to their own wallet is the main use case, so the
+    // creator may also be the recipient. Anyone can pay the request.
 
     let payment_request = &mut ctx.accounts.payment_request;
 
@@ -153,8 +152,11 @@ pub fn pay_request(ctx: Context<PayRequest>) -> Result<()> {
         let token_program = ctx.accounts.token_program.as_ref()
             .ok_or(BlinkPayError::InvalidTokenMint)?;
 
-        // Validate token account ownership
-        validate_token_account_ownership(payer_token_account, &ctx.accounts.payer.key())?;
+        // Both sides must hold the requested mint, and the destination must belong to the
+        // recipient fixed at creation. Otherwise a payer could mark the request paid while
+        // sending to their own account or paying in a worthless token.
+        validate_token_account(payer_token_account, &ctx.accounts.payer.key(), &payment_request.token_mint)?;
+        validate_token_account(recipient_token_account, &payment_request.recipient, &payment_request.token_mint)?;
 
         // Transfer tokens
         transfer_spl_tokens(

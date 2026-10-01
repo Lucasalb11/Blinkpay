@@ -48,7 +48,8 @@ describe("blinkpay", () => {
 
     beforeEach(async () => {
       // Use a unique timestamp for each test
-      testTimestamp = getCurrentTime() + Math.floor(Math.random() * 1000);
+      // Unique per test, never in the future: the program now reads time from the Clock sysvar.
+      testTimestamp = getCurrentTime() - Math.floor(Math.random() * 200);
       [paymentRequestPda, paymentRequestBump] = PublicKey.findProgramAddressSync(
         [
           Buffer.from("payment_request"),
@@ -169,13 +170,14 @@ describe("blinkpay", () => {
 
     beforeEach(async () => {
       // Use a unique timestamp for each test
-      testTimestamp = getCurrentTime() + Math.floor(Math.random() * 1000);
+      // Unique per test, never in the future: the program now reads time from the Clock sysvar.
+      testTimestamp = getCurrentTime() - Math.floor(Math.random() * 200);
     });
 
     const authority = provider.wallet.publicKey;
 
     it("Creates a one-time scheduled charge", async () => {
-      const executeAt = testTimestamp + futureTimestamp;
+      const executeAt = testTimestamp + 3600; // 1 hour ahead
       const [scheduledChargePda] = PublicKey.findProgramAddressSync(
         [
           Buffer.from("scheduled_charge"),
@@ -288,9 +290,50 @@ describe("blinkpay", () => {
       expect(scheduledCharge.executionCount).to.equal(1);
     });
 
+    it("Rejects a charge dated in the past even if the client claims an older time", async () => {
+      const executeAt = getCurrentTime() - 3600; // 1 hour ago
+      const forgedClientTime = executeAt - 60; // pretends "now" is before executeAt
+      const [pastPda] = PublicKey.findProgramAddressSync(
+        [
+          Buffer.from("scheduled_charge"),
+          authority.toBuffer(),
+          recipient.publicKey.toBuffer(),
+          new anchor.BN(amount).toArrayLike(Buffer, "le", 8),
+          new anchor.BN(executeAt).toArrayLike(Buffer, "le", 8),
+          new Uint8Array([0]),
+        ],
+        program.programId
+      );
+
+      try {
+        await program.methods
+          .createScheduledCharge(
+            new anchor.BN(amount),
+            SystemProgram.programId,
+            recipient.publicKey,
+            new anchor.BN(executeAt),
+            0,
+            null,
+            null,
+            memo,
+            new anchor.BN(forgedClientTime)
+          )
+          .accounts({
+            authority: authority,
+            scheduledCharge: pastPda,
+            systemProgram: SystemProgram.programId,
+            clock: anchor.web3.SYSVAR_CLOCK_PUBKEY,
+          })
+          .rpc();
+        expect.fail("Charge with a past execute_at should be rejected");
+      } catch (err) {
+        expect(String(err)).to.include("InvalidTimestamp");
+      }
+    });
+
     it("Cancels a scheduled charge", async () => {
       // Create a new charge for cancellation
-      const cancelTimestamp = futureTimestamp + 7200; // 2 hours from now
+      const cancelTimestamp = 7200; // 2 hours from now
       const executeAt = testTimestamp + cancelTimestamp + 200;
       const [cancelPda] = PublicKey.findProgramAddressSync(
         [
